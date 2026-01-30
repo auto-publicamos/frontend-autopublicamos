@@ -6,12 +6,15 @@
   >
     <!-- Header -->
     <div
-      class="p-6 border-b border-neutral-100 flex justify-between items-center bg-surface sticky top-0 z-10"
+      class="p-4 sm:p-6 border-b border-neutral-100 flex justify-between items-center bg-surface sticky top-0 z-10 gap-2"
     >
       <div>
-        <h2 class="text-xl font-bold text-neutral-900 flex items-center gap-3 tracking-tight">
-          <icon-sparkles class="text-primary-main w-6 h-6"></icon-sparkles>
-          Procesando Diseños
+        <h2
+          class="text-base sm:text-xl font-bold text-neutral-900 flex items-center gap-2 sm:gap-3 tracking-tight"
+        >
+          <icon-sparkles class="text-primary-main w-5 h-5 sm:w-6 sm:h-6"></icon-sparkles>
+          <span class="hidden sm:inline">Procesando Diseños</span>
+          <span class="sm:hidden">Procesando</span>
         </h2>
         <p class="text-xs text-neutral-500 mt-1 font-medium">
           Generando {{ processedCount() }} de {{ total() }} diseños
@@ -19,7 +22,7 @@
       </div>
 
       <div
-        class="px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wide shadow-sm transition-all duration-300"
+        class="px-2 sm:px-3 py-1 rounded-full border text-[10px] sm:text-xs font-semibold uppercase tracking-wide shadow-sm transition-all duration-300 whitespace-nowrap"
         [class.bg-blue-50]="!isSuccess()"
         [class.text-blue-700]="!isSuccess()"
         [class.border-blue-200]="!isSuccess()"
@@ -27,13 +30,14 @@
         [class.text-green-700]="isSuccess()"
         [class.border-green-200]="isSuccess()"
       >
-        {{ isSuccess() ? 'COMPLETADO' : 'EN PROGRESO' }}
+        <span class="hidden sm:inline">{{ isSuccess() ? 'COMPLETADO' : 'EN PROGRESO' }}</span>
+        <span class="sm:hidden">{{ isSuccess() ? 'OK' : '...' }}</span>
       </div>
     </div>
 
     <!-- Main Content -->
     <div
-      class="flex-1 overflow-y-auto p-8 bg-white scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent"
+      class="flex-1 overflow-y-auto p-4 sm:p-8 bg-white scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent"
     >
       @if (!isSuccess()) {
         <!-- PROCESSING GRID VIEW -->
@@ -161,21 +165,26 @@
     </div>
 
     <!-- Footer -->
-    <div class="p-5 border-t border-neutral-100 flex justify-end items-center bg-white gap-3">
+    <div
+      class="p-3 sm:p-5 border-t border-neutral-100 flex justify-end items-center bg-white gap-2 sm:gap-3"
+    >
       @if (isSuccess()) {
         <button
           (click)="handleExport()"
           [disabled]="isExporting()"
-          class="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-full font-medium shadow-lg shadow-green-600/20 transition-all active:scale-95 text-sm disabled:opacity-70 disabled:cursor-wait"
+          class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-full font-medium shadow-lg shadow-green-600/20 transition-all active:scale-95 text-xs sm:text-sm disabled:opacity-70 disabled:cursor-wait"
         >
-          <icon-sheet class="text-white w-4 h-4"></icon-sheet>
-          <span>{{ isExporting() ? 'Exportando...' : 'Exportar a Google Sheets' }}</span>
+          <icon-sheet class="text-white w-3.5 h-3.5 sm:w-4 sm:h-4"></icon-sheet>
+          <span class="hidden sm:inline">{{
+            isExporting() ? 'Exportando...' : 'Exportar a Google Sheets'
+          }}</span>
+          <span class="sm:hidden">{{ isExporting() ? '...' : 'Exportar' }}</span>
         </button>
       }
 
       <button
         (click)="handleClose()"
-        class="px-6 py-2.5 border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-full font-medium transition-all text-sm"
+        class="px-4 sm:px-6 py-2 sm:py-2.5 border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-full font-medium transition-all text-xs sm:text-sm"
       >
         Cerrar
       </button>
