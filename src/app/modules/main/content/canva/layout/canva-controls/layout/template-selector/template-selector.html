@@ -1,0 +1,72 @@
+<div class="relative w-full z-100">
+  <button
+    (click)="toggleDropdown()"
+    class="w-full flex items-center justify-between p-3 pl-4 bg-white rounded-2xl shadow-nav border border-transparent transition-all duration-300"
+    [class.ring-2]="isOpen()"
+    [class.ring-primary-main-20]="isOpen()"
+    [class.border-primary-main]="isOpen()"
+    [class.hover:border-neutral-200]="!isOpen()"
+    [class.opacity-50]="disabled()"
+    [class.cursor-not-allowed]="disabled()"
+    [class.cursor-pointer]="!disabled()"
+  >
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 flex items-center justify-center shrink-0">
+        <!-- Canva Icon -->
+        <icon-canva class="w-full h-full" />
+      </div>
+      <div class="text-left">
+        <p class="text-xs font-medium text-neutral-400 uppercase tracking-wide">Plantilla</p>
+        <p class="text-sm font-semibold text-neutral-900 truncate max-w-[150px]">
+          @if (getSelectedTemplate(); as template) {
+            {{ template.name }}
+          } @else {
+            Seleccionar Diseño
+          }
+        </p>
+      </div>
+    </div>
+    <!-- Chevron Down Icon -->
+    <icon-chevron-down
+      class="w-5 h-5 text-neutral-400 transition-transform"
+      [class.rotate-180]="isOpen()"
+    />
+  </button>
+
+  @if (isOpen()) {
+    <div
+      class="absolute top-full left-0 mt-2 w-full bg-white rounded-2xl shadow-deep p-2 border border-neutral-100 animate-fade-up origin-top z-100"
+    >
+      <div class="max-h-60 overflow-y-auto space-y-1 custom-scrollbar">
+        @for (template of templates(); track template.id) {
+          <div
+            (click)="selectTemplate(template.id)"
+            class="flex items-center p-2 rounded-xl cursor-pointer transition-colors"
+            [class.bg-primary-main-5]="selectedId() === template.id"
+            [class.hover:bg-neutral-50]="selectedId() !== template.id"
+          >
+            <img
+              [src]="template.thumbnailUrl"
+              [alt]="template.name"
+              class="w-10 h-10 rounded-lg object-contain p-1 bg-neutral-100 shadow-sm shrink-0"
+            />
+            <div class="ml-3 flex-1 min-w-0">
+              <p
+                class="text-sm font-medium truncate"
+                [class.text-primary-main]="selectedId() === template.id"
+                [class.text-neutral-900]="selectedId() !== template.id"
+              >
+                {{ template.name }}
+              </p>
+              <p class="text-xs text-neutral-500 truncate">{{ template.category }}</p>
+            </div>
+            @if (selectedId() === template.id) {
+              <!-- Check Icon -->
+              <icon-check class="w-5 h-5 text-primary-main shrink-0 ml-2 mr-2" />
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,180 @@
+import {
+  Injectable,
+  signal,
+  computed,
+  Inject,
+  PLATFORM_ID,
+  inject,
+  OnDestroy,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
+import { BackendService } from './backend.service';
+
+export interface Session {
+  googleToken: string;
+  googleRefreshToken?: string;
+  googleEmail: string;
+  googlePic: string;
+  canvaToken?: string | null;
+  canvaRefreshToken?: string | null;
+  canvaName?: string | null;
+  geminiApiKey?: string | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SessionService implements OnDestroy {
+  private _session = signal<Session | null>(null);
+  private platformId = inject(PLATFORM_ID);
+  private backend = inject(BackendService);
+  private refreshInterval: any;
+
+  session = computed(() => this._session());
+  isAuthenticated = computed(() => !!this._session());
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadSession();
+      this.startTokenRefreshTimer();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  private startTokenRefreshTimer() {
+    // Refresh every 10 minutes (600,000 ms)
+    this.refreshInterval = setInterval(
+      () => {
+        this.refreshTokens();
+      },
+      10 * 60 * 1000,
+    );
+  }
+
+  private async refreshTokens() {
+    const session = this._session();
+    if (!session) return;
+
+    // Refresh Google Token
+    if (session.googleRefreshToken) {
+      try {
+        const res = await firstValueFrom(
+          this.backend.refreshGoogleToken(session.googleRefreshToken),
+        );
+        if (res?.accessToken) {
+          const current = this._session();
+          if (current) this._updateSession({ ...current, googleToken: res.accessToken });
+          console.log('Google token refreshed');
+        }
+      } catch (err) {
+        console.error('Error refreshing Google token', err);
+      }
+    }
+
+    // Refresh Canva Token
+    if (session.canvaRefreshToken) {
+      try {
+        const res = await firstValueFrom(this.backend.refreshCanvaToken(session.canvaRefreshToken));
+        if (res?.accessToken) {
+          const current = this._session();
+          if (current) this._updateSession({ ...current, canvaToken: res.accessToken });
+          console.log('Canva token refreshed');
+        }
+      } catch (err) {
+        console.error('Error refreshing Canva token', err);
+      }
+    }
+  }
+
+  setGoogleSession(
+    googleToken: string,
+    googleRefreshToken: string,
+    googleEmail: string,
+    googlePic: string,
+  ): void {
+    const current = this._session() || {
+      canvaToken: null,
+      canvaRefreshToken: null,
+      canvaName: null,
+      googleToken: '',
+      googleRefreshToken: '',
+      googleEmail: '',
+      googlePic: '',
+      geminiApiKey: null,
+    };
+    const session: Session = {
+      ...current,
+      googleToken,
+      googleRefreshToken,
+      googleEmail,
+      googlePic,
+    };
+    this._updateSession(session);
+  }
+
+  setCanvaSession(canvaToken: string, canvaRefreshToken: string, canvaName: string): void {
+    const current = this._session() || { googleToken: '', googleEmail: '', googlePic: '' };
+    const session: Session = { ...current, canvaToken, canvaRefreshToken, canvaName };
+    this._updateSession(session);
+  }
+
+  setGeminiApiKey(apiKey: string): void {
+    const current = this._session();
+    if (current) {
+      this._updateSession({ ...current, geminiApiKey: apiKey });
+    }
+  }
+
+  private _updateSession(session: Session) {
+    this._session.set(session);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('auth_session', JSON.stringify(session));
+    }
+  }
+
+  clearSession() {
+    this._session.set(null);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('auth_session');
+    }
+  }
+
+  private loadSession() {
+    const stored = localStorage.getItem('auth_session');
+    if (stored) {
+      try {
+        const session = JSON.parse(stored);
+        this._session.set(session);
+      } catch (e) {
+        console.error('Error parsing session', e);
+        this.clearSession();
+      }
+    }
+  }
+
+  getGoogleToken(): string | null {
+    return this._session()?.googleToken || null;
+  }
+
+  getCanvaToken(): string | null {
+    return this._session()?.canvaToken || null;
+  }
+
+  getCanvaRefreshToken(): string | null {
+    return this._session()?.canvaRefreshToken || null;
+  }
+
+  getCanvaName(): string {
+    return this._session()?.canvaName || '';
+  }
+
+  getGeminiApiKey(): string | null {
+    return this._session()?.geminiApiKey || null;
+  }
+}

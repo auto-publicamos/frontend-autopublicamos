@@ -1,0 +1,57 @@
+<div class="h-full flex flex-col pt-32 pb-24 lg:pe-20">
+  @if (isDouble()) {
+    <app-preview-double
+      [files]="files()"
+      [pattern]="pattern()"
+      [sets]="sets()"
+      [docName]="docName()"
+      [docLoading]="docLoading()"
+      [aiLoading]="aiLoading()"
+      (patternChange)="patternChange.emit($event)"
+      (setsChange)="setsChange.emit($event)"
+      (openDrive)="openDrive.emit()"
+      (openDoc)="openDoc.emit()"
+      (openKey)="openKey.emit()"
+      (runAi)="runAi.emit()"
+      (pickImage)="onPickImage($event)"
+    />
+  } @else if (isSingle()) {
+    <app-preview-single
+      [files]="files()"
+      [pattern]="pattern()"
+      [sets]="sets()"
+      [docName]="docName()"
+      [docLoading]="docLoading()"
+      [aiLoading]="aiLoading()"
+      (patternChange)="patternChange.emit($event)"
+      (setsChange)="setsChange.emit($event)"
+      (openDrive)="openDrive.emit()"
+      (openDoc)="openDoc.emit()"
+      (openKey)="openKey.emit()"
+      (runAi)="runAi.emit()"
+      (pickImage)="onPickImage($event)"
+    />
+  } @else {
+    <!-- Empty State -->
+    <div
+      class="flex-1 flex flex-col items-center justify-center bg-white/40 border-2 border-dashed border-neutral-200 rounded-3xl p-12 text-center animate-fade-up delay-100 min-h-[50vh]"
+    >
+      <div
+        class="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center mb-6 text-neutral-400"
+      >
+        <icon-folder class="w-10 h-10" />
+      </div>
+      <h3 class="text-xl font-semibold text-neutral-800 mb-2">Selecciona un Diseño</h3>
+      <p class="text-neutral-500 max-w-sm">Elige una plantilla del menú lateral para comenzar.</p>
+
+      @if (loading()) {
+        <div class="mt-8 flex flex-col items-center">
+          <div
+            class="w-8 h-8 border-4 border-primary-main/30 border-t-primary-main rounded-full animate-spin"
+          ></div>
+          <span class="text-sm font-medium text-primary-main mt-3">Importando archivos...</span>
+        </div>
+      }
+    </div>
+  }
+</div>

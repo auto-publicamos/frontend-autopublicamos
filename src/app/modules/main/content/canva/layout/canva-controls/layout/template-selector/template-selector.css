@@ -1,0 +1,7 @@
+/* Add any specific styles here if needed, generic styles are in global css */
+.bg-primary-main-5 {
+  background-color: rgba(0, 102, 255, 0.05); /* Assuming primary is #0066FF */
+}
+.ring-primary-main-20 {
+  --tw-ring-color: rgba(0, 102, 255, 0.2);
+}

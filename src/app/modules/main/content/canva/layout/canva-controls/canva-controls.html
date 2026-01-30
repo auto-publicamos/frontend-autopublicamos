@@ -1,0 +1,61 @@
+<div class="flex flex-col justify-center py-24 space-y-6 z-20 sticky top-0 h-screen">
+  <div class="animate-fade-up">
+    <div>
+      <h1 class="text-3xl lg:text-4xl font-semibold text-neutral-900 mb-4 leading-[1.1]">
+        Conecta y<br />
+        <span class="text-primary-main">Automatiza.</span>
+      </h1>
+      <p class="text-neutral-500 text-base leading-relaxed">
+        Selecciona tu carpeta de Google Drive, elige una plantilla de Canva y déjanos encargarnos
+        del renderizado.
+      </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="space-y-4 mt-8">
+      <!-- Step 1: Template Selection -->
+      <div class="bg-white p-5 rounded-3xl shadow-soft border border-white/60 relative z-30">
+        <h3 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
+          1. Elegir Plantilla
+        </h3>
+        <app-template-selector
+          [templates]="templates()"
+          [selectedId]="selectedTemplateId()"
+          (select)="onTemplateSelect($event)"
+        />
+      </div>
+
+      <!-- Step 2: Source Selection REMOVED -->
+
+      <!-- Generate Button -->
+      @if (showGenerateButton()) {
+        <div class="animate-fade-up pt-2 relative z-10">
+          <button
+            (click)="onGenerate()"
+            [disabled]="isSending()"
+            class="w-full group flex items-center justify-center gap-2 bg-neutral-900 text-white px-6 py-3 rounded-full shadow-deep hover:scale-[1.02] hover:bg-black transition-all duration-300 disabled:opacity-70 disabled:hover:scale-100 font-semibold text-sm md:text-base"
+          >
+            @if (isSending()) {
+              <div
+                class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+              ></div>
+            } @else {
+              <icon-sparkles class="w-5 h-5 text-primary-main" />
+            }
+            <span>Generar en Canva</span>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Hidden File Input -->
+    <input
+      type="file"
+      #fileInput
+      (change)="onFileChange($event)"
+      class="hidden"
+      webkitdirectory
+      multiple
+    />
+  </div>
+</div>

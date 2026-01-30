@@ -1,0 +1,112 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl flex flex-col max-h-[85vh]">
+    <!-- Header -->
+    <div class="p-4 border-b border-neutral-100 flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-neutral-800 flex items-center gap-2">
+        <icon-drive class="text-primary-main w-5 h-5"></icon-drive>
+        Seleccionar Documento
+      </h2>
+      <button
+        (click)="close.emit()"
+        class="text-neutral-400 hover:text-neutral-600 transition-colors"
+      >
+        <icon-x class="w-5 h-5"></icon-x>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="flex-1 overflow-y-auto p-6 bg-neutral-50/50">
+      @if (loading()) {
+        <div class="flex items-center justify-center h-60">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-main"></div>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-4">
+          <!-- Back Nav -->
+          @if (currentFolderId() !== 'root') {
+            <button
+              (click)="goUp()"
+              class="self-start flex items-center gap-2 px-3 py-1.5 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg text-left transition-colors shadow-sm mb-2"
+            >
+              <icon-arrow-left class="w-3.5 h-3.5 text-neutral-500"></icon-arrow-left>
+              <span class="font-medium text-xs text-neutral-600">Volver atrás</span>
+            </button>
+          }
+
+          <!-- Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            @for (item of items(); track item.id) {
+              <!-- Item Card -->
+              <div
+                class="relative flex flex-col p-2.5 rounded-lg border bg-white transition-all cursor-pointer group aspect-square hover:shadow-md"
+                [class.shadow-md]="selectedItemId() === item.id"
+                [class.border-green-500]="selectedItemId() === item.id"
+                [class.border-neutral-200]="selectedItemId() !== item.id"
+                (click)="handleItemClick(item)"
+                (dblclick)="handleItemDoubleClick(item)"
+              >
+                <!-- Content Render -->
+                @if (item.mimeType === 'application/vnd.google-apps.folder') {
+                  <!-- Folder View -->
+                  <div class="flex-1 flex flex-col items-center justify-center p-2 text-center">
+                    <div
+                      class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2"
+                    >
+                      <icon-folder class="w-6 h-6"></icon-folder>
+                    </div>
+                    <span
+                      class="text-xs font-medium text-neutral-700 line-clamp-2 leading-tight break-all"
+                      >{{ item.name }}</span
+                    >
+                  </div>
+                } @else {
+                  <!-- Document View -->
+                  <div
+                    class="flex-1 relative overflow-hidden rounded-md bg-blue-50 flex items-center justify-center mb-2"
+                  >
+                    <icon-document class="w-8 h-8 text-blue-500"></icon-document>
+                  </div>
+                  <span class="text-[10px] text-neutral-600 truncate text-center block px-1">{{
+                    item.name
+                  }}</span>
+                }
+
+                <!-- Checkmark if selected -->
+                @if (selectedItemId() === item.id) {
+                  <div class="absolute top-2 right-2 bg-white rounded-full p-0.5 shadow-sm">
+                    <icon-check class="w-4 h-4 text-green-600"></icon-check>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (items().length === 0) {
+            <div class="flex flex-col items-center justify-center py-20 text-neutral-400">
+              <div
+                class="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-3"
+              >
+                <icon-drive class="w-8 h-8 text-neutral-300"></icon-drive>
+              </div>
+              <div class="text-sm">Carpeta vacía.</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="p-4 border-t border-neutral-100 flex justify-between items-center bg-white rounded-b-xl"
+    >
+      <span class="text-xs text-neutral-500">Double click to select/open </span>
+      <button
+        (click)="confirmSelection()"
+        [disabled]="!selectedItemId()"
+        class="bg-primary-main hover:bg-primary-dark text-white px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+      >
+        Seleccionar
+      </button>
+    </div>
+  </div>
+</div>

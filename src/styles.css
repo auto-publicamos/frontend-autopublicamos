@@ -1,3 +1,88 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
 
-@import "tailwindcss";
+@theme {
+  /* Colors */
+  --color-primary-main: #0066ff;
+  --color-primary-hover: #0052cc;
+  --color-primary-active: #004099;
+  --color-primary-contrast: #ffffff;
+
+  --color-secondary-main: #ff8800;
+  --color-secondary-hover: #e67a00;
+
+  --color-neutral-900: #111111;
+  --color-neutral-800: #2d2d2d;
+  --color-neutral-600: #555555;
+  --color-neutral-400: #999999;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-100: #f5f5f7;
+  --color-neutral-50: #f8f9fa;
+
+  --color-surface: #ffffff;
+  --color-surface-floating: rgba(255, 255, 255, 0.8);
+
+  /* Font Family */
+  --font-sans: 'Inter', 'sans-serif';
+
+  /* Font Sizes */
+  --text-display: 4.5rem;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+
+  --text-h2: 2.5rem;
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.01em;
+
+  /* Box Shadows */
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-floating: 0 10px 40px -10px rgba(0, 0, 0, 0.12);
+  --shadow-deep: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-nav: 0 2px 10px rgba(0, 0, 0, 0.03);
+
+  /* Animations */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-up: fadeUp 0.6s ease-out forwards;
+}
+
+/* Keyframes */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Styles */
+body {
+  background-color: #f8f9fa;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar for clean UI */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e5e5e5;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}

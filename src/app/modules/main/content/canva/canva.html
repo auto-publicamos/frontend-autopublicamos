@@ -1,0 +1,106 @@
+<div class="flex h-screen w-full gap-10 bg-[#fcfcfc] overflow-hidden relative">
+  <!-- Left Panel: Controls -->
+  <div
+    class="w-full max-w-[500px] h-full overflow-y-auto lg:ps-20 lg:pe-10 relative z-10 shrink-0 scrollbar-hide"
+  >
+    <app-canva-controls
+      [templates]="templates()"
+      [selectedTemplateId]="selectedTemplateId()"
+      [loading]="loading()"
+      [source]="source()"
+      [showGenerateButton]="showGenerateButton()"
+      [isSending]="isSending()"
+      (templateSelected)="handleTemplateSelect($event)"
+      (driveConnected)="handleDriveConnect()"
+      (filesSelected)="handleLocalFiles($event)"
+      (generateClicked)="handleSend()"
+    />
+  </div>
+
+  <!-- Right Panel: Preview Space -->
+  <div class="flex-1 h-full overflow-hidden relative z-0 flex flex-col">
+    @if (selectedTemplateId()) {
+      <div class="flex-1 overflow-y-auto relative">
+        <app-canva-preview
+          [files]="files()"
+          [loading]="loading()"
+          [selectedTemplateId]="selectedTemplateId()"
+          [pattern]="pattern()"
+          [sets]="sets()"
+          [docName]="selectedDocName()"
+          [docLoading]="docLoading()"
+          [aiLoading]="aiLoading()"
+          (patternChange)="handlePatternChange($event)"
+          (setsChange)="handleSetsChange($event)"
+          (removeFile)="handleRemoveFile($event)"
+          (openDrive)="handleDriveConnect()"
+          (openDoc)="handleOpenDoc()"
+          (openKey)="handleOpenKey()"
+          (runAi)="handleRunAi()"
+          (pickImage)="handlePickImage($event)"
+        />
+      </div>
+    } @else {
+      <!-- Empty State Decoration -->
+      <div
+        class="flex-1 flex flex-col items-center justify-center text-neutral-300 gap-6 select-none bg-white/50"
+      >
+        <div class="text-center">
+          <p class="font-medium text-lg text-neutral-400">Espacio de Trabajo</p>
+          <p class="text-xs text-neutral-300 mt-1">Selecciona una plantilla a la izquierda</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modals -->
+@if (source() === 'drive' && showFolderPicker()) {
+  <app-drive-open-folder
+    (close)="showFolderPicker.set(false)"
+    (folderSelected)="handleFolderSelected($event)"
+  />
+}
+
+@if (source() === 'drive' && showImagePicker()) {
+  <app-drive-open-image
+    (close)="showImagePicker.set(false)"
+    (imageSelected)="handleImageSelectedFromPicker($event)"
+  />
+}
+
+@if (showDocPicker()) {
+  <app-drive-open-doc
+    (close)="showDocPicker.set(false)"
+    (docSelected)="handleDocSelected($event)"
+  />
+}
+
+@if (currentJobId() === 'local-batch') {
+  <app-canva-proccess
+    [total]="currentJobTotal()"
+    [processedCount]="processedCount()"
+    [results]="generatedResults()"
+    (close)="currentJobId.set(null)"
+  />
+}
+
+@if (showKeyModal()) {
+  <app-modal-prompt
+    title="Configurar Gemini API Key"
+    message="Ingresa tu clave API de Google Gemini para habilitar la generación de patrones con IA."
+    placeholder="Pegar API Key aquí..."
+    [initialValue]="session.getGeminiApiKey() || ''"
+    (close)="showKeyModal.set(false)"
+    (confirm)="handleKeySubmit($event)"
+  />
+}
+
+@if (showAlertModal()) {
+  <app-modal-alert
+    [title]="alertProps().title"
+    [message]="alertProps().message"
+    [type]="alertProps().type"
+    (close)="showAlertModal.set(false)"
+  />
+}

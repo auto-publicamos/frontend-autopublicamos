@@ -1,0 +1,39 @@
+<div
+  class="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+>
+  <div
+    class="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full animate-in zoom-in-95 duration-200 text-center relative overflow-hidden ring-1 ring-neutral-100"
+  >
+    <div class="mb-5 mt-2">
+      @if (type() === 'success') {
+        <div
+          class="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-green-50/50"
+        >
+          <icon-check class="w-8 h-8" />
+        </div>
+      } @else if (type() === 'error') {
+        <div
+          class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-red-50/50"
+        >
+          <icon-x class="w-8 h-8" />
+        </div>
+      } @else {
+        <div
+          class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-blue-50/50"
+        >
+          <span class="text-2xl font-bold">i</span>
+        </div>
+      }
+    </div>
+
+    <h3 class="text-xl font-bold text-neutral-800 mb-2">{{ title() }}</h3>
+    <p class="text-neutral-600 mb-6 text-sm leading-relaxed">{{ message() }}</p>
+
+    <button
+      (click)="close.emit()"
+      class="w-full py-2 px-4 rounded-full font-bold text-sm text-white transition-all shadow-md hover:shadow-lg active:scale-[0.98] bg-blue-600 hover:bg-blue-700 shadow-blue-200"
+    >
+      Entendido
+    </button>
+  </div>
+</div>
