@@ -16,10 +16,15 @@ export class BackendService {
     return `${this.apiUrl}/google/auth?redirect=${encodeURIComponent(returnUrl)}`;
   }
 
-  refreshGoogleToken(refreshToken: string): Observable<{ accessToken: string }> {
-    return this.http.post<{ accessToken: string }>(`${this.apiUrl}/google/auth/refresh`, {
-      refreshToken,
-    });
+  refreshGoogleToken(
+    refreshToken: string,
+  ): Observable<{ accessToken: string; refreshToken?: string }> {
+    return this.http.post<{ accessToken: string; refreshToken?: string }>(
+      `${this.apiUrl}/google/auth/refresh`,
+      {
+        refreshToken,
+      },
+    );
   }
 
   verifyGoogleToken(token: string): Observable<{ valid: boolean; email?: string }> {
@@ -28,25 +33,54 @@ export class BackendService {
     });
   }
 
-  getDriveImages(token: string, folderId: string = 'root'): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/google/drive/images`, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { folderId },
-    });
+  getDriveImages(
+    token: string,
+    folderId: string = 'root',
+    pageToken?: string,
+    pageSize?: number,
+  ): Observable<{ files: any[]; nextPageToken?: string }> {
+    const params: any = { folderId };
+    if (pageToken) params.pageToken = pageToken;
+    if (pageSize) params.pageSize = pageSize.toString();
+
+    return this.http.get<{ files: any[]; nextPageToken?: string }>(
+      `${this.apiUrl}/google/drive/images`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      },
+    );
   }
 
-  getDriveFolders(token: string, folderId: string = 'root'): Observable<any[]> {
+  getDriveFolders(
+    token: string,
+    folderId: string = 'root',
+    pageSize: number = 1000,
+  ): Observable<any[]> {
+    const params: any = { folderId, pageSize: pageSize.toString() };
     return this.http.get<any[]>(`${this.apiUrl}/google/drive/folders`, {
       headers: { Authorization: `Bearer ${token}` },
-      params: { folderId },
+      params,
     });
   }
 
-  getDriveDocs(token: string, folderId: string = 'root'): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/google/drive/docs`, {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { folderId },
-    });
+  getDriveDocs(
+    token: string,
+    folderId: string = 'root',
+    pageToken?: string,
+    pageSize?: number,
+  ): Observable<{ files: any[]; nextPageToken?: string }> {
+    const params: any = { folderId };
+    if (pageToken) params.pageToken = pageToken;
+    if (pageSize) params.pageSize = pageSize.toString();
+
+    return this.http.get<{ files: any[]; nextPageToken?: string }>(
+      `${this.apiUrl}/google/drive/docs`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      },
+    );
   }
 
   getDriveDocContent(token: string, docId: string): Observable<{ content: string }> {
@@ -61,10 +95,15 @@ export class BackendService {
     return `${this.apiUrl}/canva/auth?redirect=${encodeURIComponent(returnUrl)}`;
   }
 
-  refreshCanvaToken(refreshToken: string): Observable<{ accessToken: string }> {
-    return this.http.post<{ accessToken: string }>(`${this.apiUrl}/canva/auth/refresh`, {
-      refreshToken,
-    });
+  refreshCanvaToken(
+    refreshToken: string,
+  ): Observable<{ accessToken: string; refreshToken?: string }> {
+    return this.http.post<{ accessToken: string; refreshToken?: string }>(
+      `${this.apiUrl}/canva/auth/refresh`,
+      {
+        refreshToken,
+      },
+    );
   }
 
   verifyCanvaToken(token: string): Observable<{ valid: boolean; userId?: string }> {

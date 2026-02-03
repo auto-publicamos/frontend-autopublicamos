@@ -1,0 +1,27 @@
+<div class="w-full h-full flex flex-col p-1 sm:p-4 lg:p-6">
+  <app-section-patron
+    type="double"
+    [pattern]="pattern()"
+    [docName]="docName()"
+    [docLoading]="docLoading()"
+    [aiLoading]="aiLoading()"
+    (patternChange)="patternChange.emit($event)"
+    (openDoc)="openDoc.emit()"
+    (openKey)="openKey.emit()"
+    (runAi)="runAi.emit()"
+  ></app-section-patron>
+
+  <hr class="border-neutral-100 mb-8" />
+
+  <app-section-drive [files]="files()" (openDrive)="openDrive.emit()"></app-section-drive>
+
+  <hr class="border-neutral-100 mb-8" />
+
+  <app-section-desing
+    type="double"
+    [files]="files()"
+    [sets]="sets()"
+    (setsChange)="setsChange.emit($event)"
+    (pickImage)="pickImage.emit($event)"
+  ></app-section-desing>
+</div>

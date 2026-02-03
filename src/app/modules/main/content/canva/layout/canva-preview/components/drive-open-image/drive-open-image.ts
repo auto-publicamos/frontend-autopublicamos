@@ -50,6 +50,9 @@ export class DriveOpenImage implements OnInit {
 
   folderStack = signal<{ id: string; name: string }[]>([]);
 
+  nextPageToken = signal<string | undefined>(undefined);
+  isLoadingMore = signal(false);
+
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadContent('root');
@@ -87,25 +90,35 @@ export class DriveOpenImage implements OnInit {
 
   loadContent(folderId: string) {
     this.loading.set(true);
+    this.items.set([]); // Clear items on new folder
+    this.nextPageToken.set(undefined);
+
     const token = this.session.getGoogleToken();
     if (!token) return;
 
-    const foldersReq = this.backend.getDriveFolders(token, folderId);
-    const imagesReq = this.backend.getDriveImages(token, folderId);
+    // Load folders (all/large batch)
+    const foldersReq = this.backend.getDriveFolders(token, folderId, 1000);
+    // Load first page of images
+    const imagesReq = this.backend.getDriveImages(token, folderId, undefined, 20);
 
     foldersReq.subscribe({
       next: (folders) => {
         imagesReq.subscribe({
-          next: (images) => {
+          next: ({ files, nextPageToken }) => {
             const combined = [
-              ...folders.map((f) => ({ ...f, mimeType: 'application/vnd.google-apps.folder' })),
-              ...images.map((i) => ({
+              ...folders
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }),
+                )
+                .map((f) => ({ ...f, mimeType: 'application/vnd.google-apps.folder' })),
+              ...files.map((i) => ({
                 ...i,
                 mimeType: 'image/jpeg',
                 thumbnailLink: i.thumbnailLink || '',
               })),
             ];
             this.items.set(combined);
+            this.nextPageToken.set(nextPageToken);
             this.loading.set(false);
             this.currentFolderId.set(folderId);
             this.cdr.markForCheck();
@@ -117,9 +130,44 @@ export class DriveOpenImage implements OnInit {
     });
   }
 
+  onScroll(event: Event) {
+    const element = event.target as HTMLElement;
+    if (element.scrollHeight - element.scrollTop <= element.clientHeight + 50) {
+      this.loadMore();
+    }
+  }
+
+  loadMore() {
+    if (this.isLoadingMore() || !this.nextPageToken()) return;
+
+    this.isLoadingMore.set(true);
+    const token = this.session.getGoogleToken();
+    if (!token) return;
+
+    this.backend.getDriveImages(token, this.currentFolderId(), this.nextPageToken(), 20).subscribe({
+      next: ({ files, nextPageToken }) => {
+        const newImages = files.map((i) => ({
+          ...i,
+          mimeType: 'image/jpeg',
+          thumbnailLink: i.thumbnailLink || '',
+        }));
+
+        this.items.update((current) => [...current, ...newImages]);
+        this.nextPageToken.set(nextPageToken);
+        this.isLoadingMore.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error loading more images', err);
+        this.isLoadingMore.set(false);
+      },
+    });
+  }
+
   handleError(err: any) {
     console.error('Error loading content', err);
     this.loading.set(false);
+    this.isLoadingMore.set(false);
     this.cdr.markForCheck();
 
     if (err.status === 401 || err.status === 403 || err.status === 500) {

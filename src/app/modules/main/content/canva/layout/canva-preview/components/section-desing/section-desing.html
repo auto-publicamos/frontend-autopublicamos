@@ -1,0 +1,206 @@
+<div class="pb-10">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-sm font-bold text-neutral-800">Sets de Diseño</h3>
+    <div class="flex items-center gap-2">
+      <button
+        (click)="sortIncompleteFirst()"
+        class="text-xs text-neutral-500 font-bold hover:text-neutral-700 bg-neutral-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+        title="Mover diseños incompletos al inicio"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-3 w-3"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+          />
+        </svg>
+        <span class="hidden sm:block">Ordenar</span>
+      </button>
+
+      <button
+        (click)="addSet()"
+        class="text-xs text-blue-600 font-bold hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg flex items-center gap-1"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-3 w-3"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        <span class="hidden sm:block">Agregar Set</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid gap-6" [ngClass]="gridClass()">
+    @for (set of sets(); track set.id; let i = $index) {
+      <div
+        class="relative p-5 rounded-xl border border-neutral-200 bg-white shadow-sm flex flex-col gap-4 group hover:shadow-md transition-shadow"
+      >
+        <!-- Header -->
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <span
+              class="w-6 h-6 rounded-full bg-neutral-100 text-neutral-500 flex items-center justify-center text-xs font-bold"
+              >{{ i + 1 }}</span
+            >
+            <span class="text-xs font-bold text-neutral-600">Diseño #{{ i + 1 }}</span>
+          </div>
+          @if (sets().length > 1) {
+            <button
+              (click)="removeSet(i)"
+              class="text-neutral-300 hover:text-red-500 transition-colors p-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          }
+        </div>
+
+        <!-- Drop Zones Container -->
+        <div class="flex gap-3">
+          <!-- Slot 1 (Blue) -->
+          <div
+            class="flex-1 aspect-9/16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all relative overflow-hidden bg-neutral-50 cursor-pointer"
+            [class.border-blue-200]="set.img1 === null"
+            [class.border-blue-500]="set.img1 !== null"
+            [class.border-solid]="set.img1 !== null"
+            (dragover)="onDragOver($event)"
+            (drop)="onDrop($event, i, 1)"
+            (click)="handlePickImage(i, 1)"
+          >
+            @if (set.img1 !== null && files()[set.img1!]) {
+              <img
+                [src]="files()[set.img1!].url"
+                class="absolute inset-0 w-full h-full object-cover"
+                referrerpolicy="no-referrer"
+              />
+              <div
+                (click)="updateSet(i, 1, null); $event.stopPropagation()"
+                class="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer"
+              >
+                <span
+                  class="text-white text-xs font-medium bg-red-500 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 hover:bg-red-600"
+                >
+                  Eliminar
+                </span>
+              </div>
+              <span
+                class="absolute top-2 left-2 bg-blue-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md border border-white pointer-events-none"
+                >1</span
+              >
+            } @else {
+              <span class="text-blue-300 text-3xl font-light">+</span>
+              <span class="text-[10px] text-blue-400 font-medium">{{
+                type() === 'single' ? 'Imagen' : 'Arrastra Img 1'
+              }}</span>
+            }
+          </div>
+
+          <!-- Slot 2 (Pink) -->
+          @if (type() === 'double' || type() === 'triple') {
+            <div
+              class="flex-1 aspect-9/16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all relative overflow-hidden bg-neutral-50 cursor-pointer"
+              [class.border-pink-200]="set.img2 === null"
+              [class.border-pink-500]="set.img2 !== null"
+              [class.border-solid]="set.img2 !== null"
+              (dragover)="onDragOver($event)"
+              (drop)="onDrop($event, i, 2)"
+              (click)="handlePickImage(i, 2)"
+            >
+              @if (set.img2 !== null && files()[set.img2!]) {
+                <img
+                  [src]="files()[set.img2!].url"
+                  class="absolute inset-0 w-full h-full object-cover"
+                  referrerpolicy="no-referrer"
+                />
+                <div
+                  (click)="updateSet(i, 2, null); $event.stopPropagation()"
+                  class="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer"
+                >
+                  <span
+                    class="text-white text-xs font-medium bg-red-500 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 hover:bg-red-600"
+                  >
+                    Eliminar
+                  </span>
+                </div>
+                <span
+                  class="absolute top-2 left-2 bg-pink-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md border border-white pointer-events-none"
+                  >2</span
+                >
+              } @else {
+                <span class="text-pink-300 text-3xl font-light">+</span>
+                <span class="text-[10px] text-pink-400 font-medium">Arrastra Img 2</span>
+              }
+            </div>
+          }
+
+          <!-- Slot 3 (Amber) -->
+          @if (type() === 'triple') {
+            <div
+              class="flex-1 aspect-9/16 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all relative overflow-hidden bg-neutral-50 cursor-pointer"
+              [class.border-amber-200]="set.img3 === null"
+              [class.border-amber-500]="set.img3 !== null"
+              [class.border-solid]="set.img3 !== null"
+              (dragover)="onDragOver($event)"
+              (drop)="onDrop($event, i, 3)"
+              (click)="handlePickImage(i, 3)"
+            >
+              @if (set.img3 !== null && files()[set.img3!]) {
+                <img
+                  [src]="files()[set.img3!].url"
+                  class="absolute inset-0 w-full h-full object-cover"
+                  referrerpolicy="no-referrer"
+                />
+                <div
+                  (click)="updateSet(i, 3, null); $event.stopPropagation()"
+                  class="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer"
+                >
+                  <span
+                    class="text-white text-xs font-medium bg-red-500 px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 hover:bg-red-600"
+                  >
+                    Eliminar
+                  </span>
+                </div>
+                <span
+                  class="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md border border-white pointer-events-none"
+                  >3</span
+                >
+              } @else {
+                <span class="text-amber-300 text-3xl font-light">+</span>
+                <span class="text-[10px] text-amber-400 font-medium">Arrastra Img 3</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

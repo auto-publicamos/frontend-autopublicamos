@@ -15,6 +15,22 @@
       (runAi)="runAi.emit()"
       (pickImage)="onPickImage($event)"
     />
+  } @else if (isTriple()) {
+    <app-preview-triple
+      [files]="files()"
+      [pattern]="pattern()"
+      [sets]="sets()"
+      [docName]="docName()"
+      [docLoading]="docLoading()"
+      [aiLoading]="aiLoading()"
+      (patternChange)="patternChange.emit($event)"
+      (setsChange)="setsChange.emit($event)"
+      (openDrive)="openDrive.emit()"
+      (openDoc)="openDoc.emit()"
+      (openKey)="openKey.emit()"
+      (runAi)="runAi.emit()"
+      (pickImage)="onPickImage($event)"
+    />
   } @else if (isSingle()) {
     <app-preview-single
       [files]="files()"

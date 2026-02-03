@@ -15,8 +15,7 @@ import { firstValueFrom } from 'rxjs';
 import { CanvaControls } from './layout/canva-controls/canva-controls';
 import { CanvaPreview } from './layout/canva-preview/canva-preview';
 import { CanvaProccess } from './layout/canva-proccess/canva-proccess';
-import { UploadedFile, Template, UploadSource } from './types';
-import { DesignSet } from './layout/canva-preview/layout/preview-double/preview-double';
+import { UploadedFile, Template, UploadSource, DesignSet } from './types';
 import { SessionService } from '@src/app/services/session.service';
 import { AiService } from '@src/app/services/ai.service';
 
@@ -75,7 +74,7 @@ export class Canva implements OnInit {
   showAlertModal = signal(false);
   alertProps = signal({ title: '', message: '', type: 'success' as 'success' | 'error' | 'info' });
 
-  activeSlot = signal<{ setIndex: number; slot: 1 | 2 } | null>(null);
+  activeSlot = signal<{ setIndex: number; slot: 1 | 2 | 3 } | null>(null);
 
   currentJobId = signal<string | null>(null);
   currentJobTotal = signal(0);
@@ -97,6 +96,12 @@ export class Canva implements OnInit {
       thumbnailUrl: '/png/double.png',
       category: 'Double',
     },
+    {
+      id: 'EAG_Wa4xSzg_TRIPLE',
+      name: '3 Imágenes',
+      thumbnailUrl: '/png/triple.png',
+      category: 'Triple',
+    },
   ]);
 
   showGenerateButton = computed(() => {
@@ -107,6 +112,7 @@ export class Canva implements OnInit {
     if (sets.length === 0) return false;
 
     const isDouble = templateId.includes('_DOUBLE');
+    const isTriple = templateId.includes('_TRIPLE');
 
     return sets.every((set) => {
       // Check if img1 is valid reference
@@ -126,6 +132,21 @@ export class Canva implements OnInit {
         return hasImg1 && hasImg2;
       }
 
+      if (isTriple) {
+        // Check if img2 and img3 are valid
+        const hasImg2 =
+          set.img2 !== null &&
+          set.img2 !== undefined &&
+          typeof set.img2 === 'number' &&
+          set.img2 >= 0;
+        const hasImg3 =
+          set.img3 !== null &&
+          set.img3 !== undefined &&
+          typeof set.img3 === 'number' &&
+          set.img3 >= 0;
+        return hasImg1 && hasImg2 && hasImg3;
+      }
+
       return hasImg1;
     });
   });
@@ -140,6 +161,8 @@ export class Canva implements OnInit {
           this.handleTemplateSelect('EAG_Wa4xSzg_SINGLE');
         } else if (template === 'double') {
           this.handleTemplateSelect('EAG_Wa4xSzg_DOUBLE');
+        } else if (template === 'triple') {
+          this.handleTemplateSelect('EAG_Wa4xSzg_TRIPLE');
         }
       });
     }
@@ -317,7 +340,7 @@ export class Canva implements OnInit {
     }
   }
 
-  handlePickImage(event: { setIndex: number; slot: 1 | 2 }) {
+  handlePickImage(event: { setIndex: number; slot: 1 | 2 | 3 }) {
     if (this.session.getGoogleToken()) {
       this.source.set('drive');
       this.activeSlot.set(event);
@@ -347,7 +370,8 @@ export class Canva implements OnInit {
     const currentSets = [...this.sets()];
     const targetSet = { ...currentSets[slot.setIndex] };
     if (slot.slot === 1) targetSet.img1 = fileIndex;
-    else targetSet.img2 = fileIndex;
+    else if (slot.slot === 2) targetSet.img2 = fileIndex;
+    else if (slot.slot === 3) targetSet.img3 = fileIndex;
     currentSets[slot.setIndex] = targetSet;
     this.handleSetsChange(currentSets);
     this.activeSlot.set(null);
@@ -365,8 +389,10 @@ export class Canva implements OnInit {
     this.loading.set(true);
     this.source.set('drive');
 
-    this.backend.getDriveImages(token, folderId).subscribe({
-      next: (files) => {
+    this.backend.getDriveImages(token, folderId, undefined, 1000).subscribe({
+      next: (response) => {
+        const files = Array.isArray(response) ? response : response.files;
+
         const newFiles: UploadedFile[] = files.map((file) => ({
           id: file.id,
           url: file.thumbnailLink,
@@ -401,7 +427,6 @@ export class Canva implements OnInit {
 
     const fileArray = Array.from(fileList);
 
-    // Simulate processing delay
     setTimeout(() => {
       const newFiles: UploadedFile[] = fileArray
         .filter((file) => file.type.startsWith('image/'))
@@ -417,18 +442,27 @@ export class Canva implements OnInit {
     }, 1000);
   }
 
-  initPattern() {
-    // Always initialize empty (value 2)
-    const newPattern = Array(35).fill(2);
+  initPattern(emptyValue: number = 2) {
+    // Always initialize empty
+    const newPattern = Array(35).fill(emptyValue);
     this.pattern.set(newPattern);
   }
 
   handleTemplateSelect(id: string) {
     this.selectedTemplateId.set(id);
-    this.initPattern();
+
+    // Initialize pattern based on template type
+    // Single (0..1, empty=2)
+    // Double (0..1, empty=2)
+    // Triple (0..2, empty=3)
+    const isTriple = id.includes('TRIPLE');
+    this.initPattern(isTriple ? 3 : 2);
 
     // Navigate to the corresponding route (without preserving query params)
-    const route = id === 'EAG_Wa4xSzg_SINGLE' ? 'single' : 'double';
+    let route = 'single';
+    if (id === 'EAG_Wa4xSzg_DOUBLE') route = 'double';
+    if (id === 'EAG_Wa4xSzg_TRIPLE') route = 'triple';
+
     this.router.navigate(['/main/canva', route]);
   }
 
@@ -461,11 +495,35 @@ export class Canva implements OnInit {
 
     const isSingle = selectedId.includes('_SINGLE');
     const isDouble = selectedId.includes('_DOUBLE');
+    const isTriple = selectedId.includes('_TRIPLE');
 
     if (isDouble && currentFiles.length < 2) {
       this.showAlert(
         'Faltan Imágenes',
         'Se requieren al menos 2 imágenes para la plantilla doble.',
+        'info',
+      );
+      return;
+    }
+
+    if (isTriple && currentFiles.length < 3) {
+      this.showAlert(
+        'Faltan Imágenes',
+        'Se requieren al menos 3 imágenes para la plantilla triple.',
+        'info',
+      );
+      return;
+    }
+
+    // Validate Pattern is not empty
+    const currentPattern = this.pattern();
+    const emptyValue = isTriple ? 3 : 2;
+    const isPatternEmpty = currentPattern.every((val) => val === emptyValue);
+
+    if (isPatternEmpty) {
+      this.showAlert(
+        'Patrón Vacío',
+        'El patrón de diseño está vacío. Por favor, configura el orden de las imágenes en el editor arriba.',
         'info',
       );
       return;
@@ -488,12 +546,23 @@ export class Canva implements OnInit {
         });
         jobsConfig.push({ name: `Diseño ${i + 1}`, patron: mappedPatron });
       });
-    } else {
+    } else if (isDouble) {
       this.sets().forEach((set, i) => {
         const mappedPatron = abstractPattern.map((val) => {
           if (val === 2) return -1;
           if (val === 0) return set.img1 ?? -1;
           if (val === 1) return set.img2 ?? -1;
+          return -1;
+        });
+        jobsConfig.push({ name: `Diseño ${i + 1}`, patron: mappedPatron });
+      });
+    } else if (isTriple) {
+      this.sets().forEach((set, i) => {
+        const mappedPatron = abstractPattern.map((val) => {
+          if (val === 3) return -1; // Empty for triple (mode 3)
+          if (val === 0) return set.img1 ?? -1;
+          if (val === 1) return set.img2 ?? -1;
+          if (val === 2) return set.img3 ?? -1;
           return -1;
         });
         jobsConfig.push({ name: `Diseño ${i + 1}`, patron: mappedPatron });

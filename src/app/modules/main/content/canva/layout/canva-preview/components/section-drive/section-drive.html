@@ -1,0 +1,38 @@
+<div class="mb-8">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-sm font-bold text-neutral-800">Galería de Recursos</h3>
+    <button
+      (click)="onOpenDrive()"
+      class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs font-medium text-neutral-600 group"
+    >
+      <icon-drive class="w-3 h-3"></icon-drive>
+      Google Drive
+    </button>
+  </div>
+  <div class="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-neutral-200">
+    @if (files().length === 0) {
+      <div
+        class="w-full text-xs text-neutral-400 p-8 border border-dashed rounded flex items-center justify-center text-center"
+      >
+        No hay imágenes seleccionadas
+      </div>
+    } @else {
+      <div class="grid gap-3 w-max" style="grid-template-columns: repeat(50, 5rem)">
+        @for (file of files(); track file.id; let idx = $index) {
+          <div
+            class="relative flex-none w-20 aspect-9/16 rounded-md overflow-hidden bg-neutral-100 shadow-sm cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition-transform border border-neutral-200"
+            draggable="true"
+            (dragstart)="onDragStart($event, idx)"
+          >
+            <img
+              [src]="file.url"
+              class="w-full h-full object-cover"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

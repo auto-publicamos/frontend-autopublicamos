@@ -53,7 +53,7 @@ export class SessionService implements OnDestroy {
       () => {
         this.refreshTokens();
       },
-      10 * 60 * 1000,
+      1 * 60 * 1000,
     );
   }
 
@@ -69,7 +69,13 @@ export class SessionService implements OnDestroy {
         );
         if (res?.accessToken) {
           const current = this._session();
-          if (current) this._updateSession({ ...current, googleToken: res.accessToken });
+          if (current) {
+            this._updateSession({
+              ...current,
+              googleToken: res.accessToken,
+              googleRefreshToken: res.refreshToken || current.googleRefreshToken,
+            });
+          }
           console.log('Google token refreshed');
         }
       } catch (err) {
@@ -83,7 +89,13 @@ export class SessionService implements OnDestroy {
         const res = await firstValueFrom(this.backend.refreshCanvaToken(session.canvaRefreshToken));
         if (res?.accessToken) {
           const current = this._session();
-          if (current) this._updateSession({ ...current, canvaToken: res.accessToken });
+          if (current) {
+            this._updateSession({
+              ...current,
+              canvaToken: res.accessToken,
+              canvaRefreshToken: res.refreshToken || current.canvaRefreshToken,
+            });
+          }
           console.log('Canva token refreshed');
         }
       } catch (err) {

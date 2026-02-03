@@ -1,13 +1,14 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UploadedFile } from '../../types';
+import { UploadedFile, DesignSet } from '../../types';
 import { IconFolder } from '@src/app/components/icons/icon-folder';
-import { PreviewSingle } from './layout/preview-single/preview-single';
-import { PreviewDouble, DesignSet } from './layout/preview-double/preview-double';
+import { PreviewSingle } from './content/preview-single/preview-single';
+import { PreviewDouble } from './content/preview-double/preview-double';
+import { PreviewTriple } from './content/preview-triple/preview-triple';
 
 @Component({
   selector: 'app-canva-preview',
-  imports: [CommonModule, IconFolder, PreviewSingle, PreviewDouble],
+  imports: [CommonModule, IconFolder, PreviewSingle, PreviewDouble, PreviewTriple],
   templateUrl: './canva-preview.html',
   styleUrl: './canva-preview.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,16 +33,17 @@ export class CanvaPreview {
   openDoc = output<void>();
   openKey = output<void>();
   runAi = output<void>();
-  pickImage = output<{ setIndex: number; slot: 1 | 2 }>();
+  pickImage = output<{ setIndex: number; slot: 1 | 2 | 3 }>();
 
   isDouble = computed(() => this.selectedTemplateId()?.includes('DOUBLE'));
   isSingle = computed(() => this.selectedTemplateId()?.includes('SINGLE'));
+  isTriple = computed(() => this.selectedTemplateId()?.includes('TRIPLE'));
 
   onRemoveFile(id: string) {
     this.removeFile.emit(id);
   }
 
-  onPickImage(evt: { setIndex: number; slot: 1 | 2 }) {
+  onPickImage(evt: { setIndex: number; slot: 1 | 2 | 3 }) {
     this.pickImage.emit(evt);
   }
 }

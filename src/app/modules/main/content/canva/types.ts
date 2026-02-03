@@ -13,3 +13,10 @@ export interface Template {
 }
 
 export type UploadSource = 'drive' | 'local' | null;
+
+export interface DesignSet {
+  id: string;
+  img1: number | null; // Index in files
+  img2: number | null; // Index in files
+  img3?: number | null; // Index in files (optional for legacy/single modes)
+}

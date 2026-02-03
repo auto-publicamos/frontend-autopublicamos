@@ -88,7 +88,10 @@ export class DriveOpenFolder implements OnInit {
 
     this.backend.getDriveFolders(token, folderId).subscribe({
       next: (files) => {
-        this.folders.set(files);
+        const sortedFiles = files.sort((a: any, b: any) =>
+          a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }),
+        );
+        this.folders.set(sortedFiles);
         this.loading.set(false);
         this.currentFolderId.set(folderId);
         this.cdr.markForCheck();
