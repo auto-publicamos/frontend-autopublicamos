@@ -460,7 +460,6 @@ export class Canva implements OnInit {
       return;
     }
 
-    // Verificar token de Canva antes de proceder
     try {
       await firstValueFrom(this.backend.verifyCanvaToken(canvaToken));
     } catch (err: any) {
