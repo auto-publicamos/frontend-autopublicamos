@@ -48,8 +48,11 @@ export class TemplateSelector {
     const canvaToken = this.session.getCanvaToken();
 
     if (!canvaToken) {
-      // Si no hay sesión, iniciamos el flow con redirect
-      window.location.href = this.backend.getCanvaAuthUrl(window.location.href);
+      // Si no hay sesión, iniciamos el flow con popup
+      this.session.authenticateCanva().catch((error) => {
+        console.error('Error en autenticación Canva:', error);
+        alert('No se pudo completar la autenticación con Canva. ' + error.message);
+      });
       return;
     }
 

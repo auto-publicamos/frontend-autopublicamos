@@ -10,6 +10,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { BackendService } from './backend.service';
+import { AuthPopupService } from './auth-popup.service';
 
 export interface Session {
   googleToken: string;
@@ -29,6 +30,7 @@ export class SessionService implements OnDestroy {
   private _session = signal<Session | null>(null);
   private platformId = inject(PLATFORM_ID);
   private backend = inject(BackendService);
+  private authPopup = inject(AuthPopupService);
   private refreshInterval: any;
 
   session = computed(() => this._session());
@@ -48,12 +50,11 @@ export class SessionService implements OnDestroy {
   }
 
   private startTokenRefreshTimer() {
-    // Refresh every 10 minutes (600,000 ms)
     this.refreshInterval = setInterval(
       () => {
         this.refreshTokens();
       },
-      1 * 60 * 1000,
+      3 * 60 * 1000,
     );
   }
 
@@ -171,22 +172,66 @@ export class SessionService implements OnDestroy {
   }
 
   getGoogleToken(): string | null {
+    this.syncFromLocalStorage();
     return this._session()?.googleToken || null;
   }
 
   getCanvaToken(): string | null {
+    this.syncFromLocalStorage();
     return this._session()?.canvaToken || null;
   }
 
   getCanvaRefreshToken(): string | null {
+    this.syncFromLocalStorage();
     return this._session()?.canvaRefreshToken || null;
   }
 
   getCanvaName(): string {
+    this.syncFromLocalStorage();
     return this._session()?.canvaName || '';
   }
 
   getGeminiApiKey(): string | null {
+    this.syncFromLocalStorage();
     return this._session()?.geminiApiKey || null;
+  }
+
+  private syncFromLocalStorage(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const stored = localStorage.getItem('auth_session');
+    try {
+      const session = JSON.parse(stored || '{}');
+      const current = this._session();
+      if (JSON.stringify(current) !== stored) {
+        this._session.set(session);
+      }
+    } catch (e) {
+    }
+  }
+
+  async authenticateGoogle(): Promise<void> {
+    try {
+      const data = await this.authPopup.openGoogleAuthPopup();
+      this.setGoogleSession(
+        data.googleToken,
+        data.googleRefreshToken,
+        data.googleEmail,
+        data.googlePic,
+      );
+    } catch (error) {
+      console.error('Error en autenticación de Google:', error);
+      throw error;
+    }
+  }
+
+  async authenticateCanva(): Promise<void> {
+    try {
+      const data = await this.authPopup.openCanvaAuthPopup();
+      this.setCanvaSession(data.canvaToken, data.canvaRefreshToken, data.canvaName);
+    } catch (error) {
+      console.error('Error en autenticación de Canva:', error);
+      throw error;
+    }
   }
 }

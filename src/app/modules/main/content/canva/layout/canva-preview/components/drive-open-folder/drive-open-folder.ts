@@ -106,7 +106,10 @@ export class DriveOpenFolder implements OnInit {
     this.cdr.markForCheck();
 
     if (err.status === 401 || err.status === 403 || err.status === 500) {
-      window.location.href = this.backend.getGoogleAuthUrl(window.location.href);
+      this.session.authenticateGoogle().catch((error) => {
+        console.error('Error en autenticación Google:', error);
+        alert('No se pudo completar la autenticación con Google. ' + error.message);
+      });
     }
   }
 

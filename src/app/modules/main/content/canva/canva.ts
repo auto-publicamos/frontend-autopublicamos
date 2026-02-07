@@ -154,7 +154,6 @@ export class Canva implements OnInit {
   ngOnInit() {
     // 🛡️ BLOQUEO SSR: Esto solo corre en el navegador
     if (isPlatformBrowser(this.platformId)) {
-      this.handleAuthCallback();
       this.route.data.subscribe((data) => {
         const template = data['template'];
         if (template === 'single') {
@@ -168,56 +167,15 @@ export class Canva implements OnInit {
     }
   }
 
-  private handleAuthCallback() {
-    // Usamos snapshot porque ya estamos en el navegador y queremos la foto actual
-    const params = this.route.snapshot.queryParams;
-
-    const googleToken = params['googleToken'];
-    const googleRefreshToken = params['googleRefreshToken'];
-    const googleEmail = params['googleEmail'];
-    const googlePic = params['googlePic'];
-
-    const canvaToken = params['canvaToken'];
-    const canvaRefreshToken = params['canvaRefreshToken'];
-    const canvaName = params['canvaName'];
-
-    let sessionUpdated = false;
-
-    // 1. Guardar Google
-    if (googleToken && googleEmail && googlePic) {
-      this.session.setGoogleSession(googleToken, googleRefreshToken || '', googleEmail, googlePic);
-      sessionUpdated = true;
-    }
-
-    // 2. Guardar Canva
-    if (canvaToken) {
-      this.session.setCanvaSession(canvaToken, canvaRefreshToken || '', canvaName || '');
-      sessionUpdated = true;
-    }
-
-    if (sessionUpdated) {
-      this.clearUrlParams();
-    }
-  }
-
-  private clearUrlParams() {
-    if (!isPlatformBrowser(this.platformId)) {
-      return; // Skip on server
-    }
-
-    // Get clean URL without query params
-    const cleanUrl = window.location.pathname;
-
-    // Replace URL in browser history without navigation
-    window.history.replaceState({}, '', cleanUrl);
-  }
-
   handleDriveConnect() {
     if (this.session.getGoogleToken()) {
       this.source.set('drive');
       this.showFolderPicker.set(true);
     } else {
-      window.location.href = this.backend.getGoogleAuthUrl(window.location.href);
+      this.session.authenticateGoogle().catch((error) => {
+        console.error('Error en autenticación Google:', error);
+        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Google. ' + error.message, 'error');
+      });
     }
   }
 
@@ -225,7 +183,10 @@ export class Canva implements OnInit {
     if (this.session.getGoogleToken()) {
       this.showDocPicker.set(true);
     } else {
-      window.location.href = this.backend.getGoogleAuthUrl(window.location.href);
+      this.session.authenticateGoogle().catch((error) => {
+        console.error('Error en autenticación Google:', error);
+        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Google. ' + error.message, 'error');
+      });
     }
   }
 
@@ -257,12 +218,12 @@ export class Canva implements OnInit {
         if (err.status === 401 || err.status === 403) {
           this.showAlert(
             'Sesión Expirada',
-            'Tu sesión de Google ha caducado. Redirigiendo...',
+            'Tu sesión de Google ha caducado. Por favor, vuelve a autenticarte.',
             'info',
           );
-          setTimeout(() => {
-            window.location.href = this.backend.getGoogleAuthUrl(window.location.href);
-          }, 1500);
+          this.session.authenticateGoogle().catch((authError) => {
+            console.error('Error en autenticación Google:', authError);
+          });
         } else {
           this.showAlert(
             'Error',
@@ -346,7 +307,10 @@ export class Canva implements OnInit {
       this.activeSlot.set(event);
       this.showImagePicker.set(true);
     } else {
-      window.location.href = this.backend.getGoogleAuthUrl(window.location.href);
+      this.session.authenticateGoogle().catch((error) => {
+        console.error('Error en autenticación Google:', error);
+        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Google. ' + error.message, 'error');
+      });
     }
   }
 
@@ -408,12 +372,12 @@ export class Canva implements OnInit {
         if (err.status === 401 || err.status === 403) {
           this.showAlert(
             'Sesión Expirada',
-            'Tu sesión de Google ha caducado. Redirigiendo...',
+            'Tu sesión de Google ha caducado. Por favor, vuelve a autenticarte.',
             'info',
           );
-          setTimeout(() => {
-            window.location.href = this.backend.getGoogleAuthUrl(window.location.href);
-          }, 1500);
+          this.session.authenticateGoogle().catch((authError) => {
+            console.error('Error en autenticación Google:', authError);
+          });
         } else {
           this.showAlert('Error de Drive', 'Error conectando con Google Drive.', 'error');
         }
@@ -489,8 +453,26 @@ export class Canva implements OnInit {
 
     const canvaToken = this.session.getCanvaToken();
     if (!canvaToken) {
-      this.showAlert('Sesión Inactiva', 'No hay sesión de Canva activa.', 'error');
+      // Directamente abrir popup de autenticación
+      this.session.authenticateCanva().catch((authError) => {
+        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Canva. ' + authError.message, 'error');
+      });
       return;
+    }
+
+    // Verificar token de Canva antes de proceder
+    try {
+      await firstValueFrom(this.backend.verifyCanvaToken(canvaToken));
+    } catch (err: any) {
+      if (err.status === 401 || err.status === 403) {
+        this.session.authenticateCanva().catch((authError) => {
+          this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Canva. ' + authError.message, 'error');
+        });
+        return;
+      } else {
+        this.showAlert('Error de Conexión', 'No se pudo verificar la sesión de Canva.', 'error');
+        return;
+      }
     }
 
     const isSingle = selectedId.includes('_SINGLE');
