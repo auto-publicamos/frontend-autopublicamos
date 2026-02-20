@@ -17,7 +17,13 @@
         No hay imágenes seleccionadas
       </div>
     } @else {
-      <div class="grid gap-3 w-max" style="grid-template-columns: repeat(50, 5rem)">
+      <div
+        class="grid gap-3 w-max"
+        [style.grid-template-rows]="files().length > 150 ? 'repeat(3, auto)' : null"
+        [style.grid-auto-flow]="files().length > 150 ? 'column' : null"
+        [style.grid-auto-columns]="files().length > 150 ? '5rem' : null"
+        [style.grid-template-columns]="files().length > 150 ? 'none' : 'repeat(50, 5rem)'"
+      >
         @for (file of files(); track file.id; let idx = $index) {
           <div
             class="relative flex-none w-20 aspect-9/16 rounded-md overflow-hidden bg-neutral-100 shadow-sm cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition-transform border border-neutral-200"
