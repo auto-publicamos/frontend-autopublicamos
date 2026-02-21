@@ -11,8 +11,8 @@ import { IconLock } from '@src/app/components/icons/icon-lock';
 })
 export class Appbar {
   navItems = signal([
-    { name: 'Canva', active: true, hideOnMobile: false },
-    { name: 'TikTok', active: false, hideOnMobile: true },
-    { name: 'Instagram', active: false, hideOnMobile: true },
+    { name: 'Canva', active: true, selected: true, hideOnMobile: false },
+    { name: 'TikTok', active: false, selected: false, hideOnMobile: true },
+    { name: 'Instagram', active: false, selected: false, hideOnMobile: true },
   ]);
 }

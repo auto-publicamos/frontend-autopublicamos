@@ -1,0 +1,147 @@
+<div class="flex flex-col h-full">
+  <!-- Acciones -->
+  <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+    <button
+      (click)="openDrive.emit()"
+      class="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 border border-neutral-200 hover:bg-neutral-200 transition-colors text-neutral-600 font-medium text-sm"
+    >
+      <icon-drive class="w-4 h-4"></icon-drive>
+      <span>Google Drive</span>
+    </button>
+
+    @if (folderName()) {
+      <div
+        class="flex items-center gap-2 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-xs text-neutral-600 font-medium max-w-[200px] sm:max-w-xs overflow-hidden"
+      >
+        <icon-folder class="w-4 h-4 text-neutral-400 shrink-0"></icon-folder>
+        <span class="truncate">{{ folderName() }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6 items-start">
+    <!-- Mockup de Preview (referencia visual) -->
+    <div
+      class="w-full lg:w-48 xl:w-56 shrink-0 bg-white border border-neutral-200 rounded-2xl p-4 shadow-sm flex flex-col items-center"
+    >
+      <p class="text-[11px] font-bold text-neutral-400 tracking-wider mb-3 uppercase">
+        Vista Previa
+      </p>
+
+      <div
+        class="w-full aspect-9/16 bg-neutral-100 rounded-xl border border-neutral-200 overflow-hidden relative flex flex-col items-center justify-center"
+      >
+        @if (files().length > 0) {
+          <img
+            [src]="files()[0].url"
+            class="w-full h-full object-cover"
+            referrerpolicy="no-referrer"
+          />
+        } @else {
+          <div
+            class="w-10 h-10 bg-neutral-200 rounded-full flex items-center justify-center text-neutral-400 mb-2"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </div>
+          <span class="text-[10px] text-neutral-400 font-medium">1 Imagen</span>
+        }
+
+        <!-- Player controls overlay -->
+        <div
+          class="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-md rounded-lg p-2 flex items-center gap-2 shadow-lg border border-white/10"
+        >
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <div class="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+            <div class="w-1/3 h-full bg-white rounded-full"></div>
+          </div>
+          <span class="text-[9px] text-white font-semibold">5.0s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Galería -->
+    <div
+      class="flex-1 w-full border border-neutral-200 rounded-2xl p-5 bg-white shadow-sm min-h-[350px]"
+    >
+      @if (files().length > 0) {
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-sm font-semibold text-neutral-800">
+            Imágenes detectadas ({{ files().length }})
+          </h3>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          @for (file of files(); track file.id) {
+            <div
+              class="relative aspect-9/16 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 group shadow-sm"
+            >
+              <img
+                [src]="file.url"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              />
+
+              <!-- Overlay duración miniatura -->
+              <div
+                class="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/60 backdrop-blur-md rounded-md px-1 py-0.5 pointer-events-none"
+              >
+                <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                <span class="text-[8px] text-white font-semibold leading-none">5.0s</span>
+              </div>
+
+              <button
+                (click)="removeFile.emit(file.id)"
+                class="absolute top-2 right-2 w-6 h-6 bg-white/90 hover:bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-500 shadow-sm"
+                title="Quitar"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="flex flex-col items-center justify-center h-full pt-8 pb-4 text-center">
+          <div
+            class="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4 text-neutral-300 border border-neutral-100"
+          >
+            <icon-folder class="w-8 h-8" />
+          </div>
+          <h3 class="text-sm font-semibold text-neutral-700 mb-1">No hay imágenes</h3>
+          <p class="text-xs text-neutral-500 max-w-[220px]">
+            Haz clic en el botón superior para seleccionar una carpeta y comenzar.
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

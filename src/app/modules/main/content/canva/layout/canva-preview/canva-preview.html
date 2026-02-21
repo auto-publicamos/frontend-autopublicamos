@@ -47,6 +47,13 @@
       (runAi)="runAi.emit()"
       (pickImage)="onPickImage($event)"
     />
+  } @else if (isFolder()) {
+    <app-preview-folder
+      [files]="files()"
+      [folderName]="folderName()"
+      (openDrive)="openDrive.emit()"
+      (removeFile)="onRemoveFile($event)"
+    />
   } @else {
     <!-- Empty State -->
     <div

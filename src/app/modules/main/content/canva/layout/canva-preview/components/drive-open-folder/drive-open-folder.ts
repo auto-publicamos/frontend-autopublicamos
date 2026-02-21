@@ -35,7 +35,7 @@ interface DriveFile {
 })
 export class DriveOpenFolder implements OnInit {
   @Output() close = new EventEmitter<void>();
-  @Output() folderSelected = new EventEmitter<string>();
+  @Output() folderSelected = new EventEmitter<{ id: string; name: string }>();
 
   backend = inject(BackendService);
   session = inject(SessionService);
@@ -133,7 +133,9 @@ export class DriveOpenFolder implements OnInit {
 
   confirmSelection() {
     if (this.selectedFolderId()) {
-      this.folderSelected.emit(this.selectedFolderId()!);
+      const folder = this.folders().find((f) => f.id === this.selectedFolderId());
+      const name = folder ? folder.name : 'Carpeta Seleccionada';
+      this.folderSelected.emit({ id: this.selectedFolderId()!, name });
     }
   }
 }

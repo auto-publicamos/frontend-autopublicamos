@@ -122,6 +122,16 @@ export class BackendService {
     );
   }
 
+  generateFolderDesign(token: string, imageUrl: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/canva/generate-folder`,
+      { imageUrl },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+  }
+
   exportToSheet(token: string, data: { name: string; url: string }[]): Observable<{ url: string }> {
     return this.http.post<{ url: string }>(
       `${this.apiUrl}/canva/export`,

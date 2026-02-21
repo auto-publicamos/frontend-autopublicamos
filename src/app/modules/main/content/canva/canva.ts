@@ -69,6 +69,9 @@ export class Canva implements OnInit {
   docLoading = signal(false);
   aiLoading = signal(false);
 
+  // Folder State
+  selectedFolderName = signal<string | null>(null);
+
   // Modals state
   showKeyModal = signal(false);
   showAlertModal = signal(false);
@@ -102,11 +105,21 @@ export class Canva implements OnInit {
       thumbnailUrl: '/png/triple.png',
       category: 'Triple',
     },
+    {
+      id: 'EAG_Wa4xSzg_FOLDER',
+      name: 'Carpeta [1 picture]',
+      thumbnailUrl: '/png/folder.png',
+      category: 'Folder',
+    },
   ]);
 
   showGenerateButton = computed(() => {
     const templateId = this.selectedTemplateId();
     if (!templateId) return false;
+
+    if (templateId.includes('_FOLDER')) {
+      return this.files().length > 0;
+    }
 
     const sets = this.sets();
     if (sets.length === 0) return false;
@@ -162,6 +175,8 @@ export class Canva implements OnInit {
           this.handleTemplateSelect('EAG_Wa4xSzg_DOUBLE');
         } else if (template === 'triple') {
           this.handleTemplateSelect('EAG_Wa4xSzg_TRIPLE');
+        } else if (template === 'folder') {
+          this.handleTemplateSelect('EAG_Wa4xSzg_FOLDER');
         }
       });
     }
@@ -174,7 +189,11 @@ export class Canva implements OnInit {
     } else {
       this.session.authenticateGoogle().catch((error) => {
         console.error('Error en autenticación Google:', error);
-        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Google. ' + error.message, 'error');
+        this.showAlert(
+          'Error de Autenticación',
+          'No se pudo completar la autenticación con Google. ' + error.message,
+          'error',
+        );
       });
     }
   }
@@ -185,7 +204,11 @@ export class Canva implements OnInit {
     } else {
       this.session.authenticateGoogle().catch((error) => {
         console.error('Error en autenticación Google:', error);
-        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Google. ' + error.message, 'error');
+        this.showAlert(
+          'Error de Autenticación',
+          'No se pudo completar la autenticación con Google. ' + error.message,
+          'error',
+        );
       });
     }
   }
@@ -282,7 +305,8 @@ export class Canva implements OnInit {
     this.aiLoading.set(true);
     try {
       const templateId = this.selectedTemplateId();
-      const mode = templateId?.includes('_SINGLE') ? 'single' : 'double';
+      const mode =
+        templateId?.includes('_SINGLE') || templateId?.includes('_FOLDER') ? 'single' : 'double';
 
       const pattern = await this.aiService.generatePattern(content, mode);
       console.log('[Canva] AI Generated Pattern:', pattern);
@@ -309,7 +333,11 @@ export class Canva implements OnInit {
     } else {
       this.session.authenticateGoogle().catch((error) => {
         console.error('Error en autenticación Google:', error);
-        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Google. ' + error.message, 'error');
+        this.showAlert(
+          'Error de Autenticación',
+          'No se pudo completar la autenticación con Google. ' + error.message,
+          'error',
+        );
       });
     }
   }
@@ -341,11 +369,12 @@ export class Canva implements OnInit {
     this.activeSlot.set(null);
   }
 
-  handleFolderSelected(folderId: string) {
+  handleFolderSelected(folder: { id: string; name: string }) {
     this.showFolderPicker.set(false);
+    this.selectedFolderName.set(folder.name);
     const token = this.session.getGoogleToken();
     if (token) {
-      this.fetchDriveImages(token, folderId);
+      this.fetchDriveImages(token, folder.id);
     }
   }
 
@@ -357,13 +386,20 @@ export class Canva implements OnInit {
       next: (response) => {
         const files = Array.isArray(response) ? response : response.files;
 
-        const newFiles: UploadedFile[] = files.map((file) => ({
+        const validFiles = files.filter((f: any) => f.thumbnailLink);
+        const newFiles: UploadedFile[] = validFiles.map((file: any) => ({
           id: file.id,
           url: file.thumbnailLink,
           name: file.name,
           source: 'drive',
         }));
-        this.files.update((prev) => [...prev, ...newFiles]);
+
+        if (this.selectedTemplateId()?.includes('_FOLDER')) {
+          this.files.set(newFiles);
+        } else {
+          this.files.update((prev) => [...prev, ...newFiles]);
+        }
+
         this.loading.set(false);
       },
       error: (err) => {
@@ -426,6 +462,7 @@ export class Canva implements OnInit {
     let route = 'single';
     if (id === 'EAG_Wa4xSzg_DOUBLE') route = 'double';
     if (id === 'EAG_Wa4xSzg_TRIPLE') route = 'triple';
+    if (id === 'EAG_Wa4xSzg_FOLDER') route = 'folder';
 
     this.router.navigate(['/main/canva', route]);
   }
@@ -455,7 +492,11 @@ export class Canva implements OnInit {
     if (!canvaToken) {
       // Directamente abrir popup de autenticación
       this.session.authenticateCanva().catch((authError) => {
-        this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Canva. ' + authError.message, 'error');
+        this.showAlert(
+          'Error de Autenticación',
+          'No se pudo completar la autenticación con Canva. ' + authError.message,
+          'error',
+        );
       });
       return;
     }
@@ -465,7 +506,11 @@ export class Canva implements OnInit {
     } catch (err: any) {
       if (err.status === 401 || err.status === 403) {
         this.session.authenticateCanva().catch((authError) => {
-          this.showAlert('Error de Autenticación', 'No se pudo completar la autenticación con Canva. ' + authError.message, 'error');
+          this.showAlert(
+            'Error de Autenticación',
+            'No se pudo completar la autenticación con Canva. ' + authError.message,
+            'error',
+          );
         });
         return;
       } else {
@@ -474,6 +519,7 @@ export class Canva implements OnInit {
       }
     }
 
+    const isFolder = selectedId.includes('_FOLDER');
     const isSingle = selectedId.includes('_SINGLE');
     const isDouble = selectedId.includes('_DOUBLE');
     const isTriple = selectedId.includes('_TRIPLE');
@@ -496,29 +542,45 @@ export class Canva implements OnInit {
       return;
     }
 
-    // Validate Pattern is not empty
-    const currentPattern = this.pattern();
-    const emptyValue = isTriple ? 3 : 2;
-    const isPatternEmpty = currentPattern.every((val) => val === emptyValue);
+    // Validate Pattern is not empty for non-folder templates
+    if (!isFolder) {
+      const currentPattern = this.pattern();
+      const emptyValue = isTriple ? 3 : 2;
+      const isPatternEmpty = currentPattern.every((val) => val === emptyValue);
 
-    if (isPatternEmpty) {
-      this.showAlert(
-        'Patrón Vacío',
-        'El patrón de diseño está vacío. Por favor, configura el orden de las imágenes en el editor arriba.',
-        'info',
-      );
-      return;
+      if (isPatternEmpty) {
+        this.showAlert(
+          'Patrón Vacío',
+          'El patrón de diseño está vacío. Por favor, configura el orden de las imágenes en el editor arriba.',
+          'info',
+        );
+        return;
+      }
     }
 
     const imageUrls = currentFiles.map((f) => f.url);
     const SLIDES_TOTAL = 35;
 
     // Define Jobs to Create
-    const jobsConfig: { name: string; patron: number[] }[] = [];
+    const jobsConfig: {
+      name: string;
+      patron?: number[];
+      imageUrl?: string;
+      isFolderTask?: boolean;
+    }[] = [];
 
     const abstractPattern = this.pattern();
 
-    if (isSingle) {
+    if (isFolder) {
+      // Un job por cada imagen de la carpeta
+      currentFiles.forEach((file, i) => {
+        jobsConfig.push({
+          name: `${file.name || `Imagen ${i + 1}`}`,
+          imageUrl: file.url,
+          isFolderTask: true,
+        });
+      });
+    } else if (isSingle) {
       this.sets().forEach((set, i) => {
         const mappedPatron = abstractPattern.map((val) => {
           if (val === 2) return -1; // Empty
@@ -560,9 +622,18 @@ export class Canva implements OnInit {
     // Execute Sequentially
     for (const job of jobsConfig) {
       try {
-        const result = await firstValueFrom(
-          this.backend.generateDesigns(canvaToken, imageUrls, job.patron),
-        );
+        let result;
+        if (job.isFolderTask && job.imageUrl) {
+          result = await firstValueFrom(
+            this.backend.generateFolderDesign(canvaToken, job.imageUrl),
+          );
+        } else if (job.patron) {
+          result = await firstValueFrom(
+            this.backend.generateDesigns(canvaToken, imageUrls, job.patron),
+          );
+        } else {
+          continue;
+        }
 
         this.generatedResults.update((prev) => [
           ...prev,

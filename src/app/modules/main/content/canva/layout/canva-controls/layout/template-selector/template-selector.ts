@@ -14,7 +14,6 @@ import { IconCanva } from '@src/app/components/icons/icon-canva';
 import { IconChevronDown } from '@src/app/components/icons/icon-chevron-down';
 import { IconCheck } from '@src/app/components/icons/icon-check';
 import { SessionService } from '@src/app/services/session.service';
-import { BackendService } from '@src/app/services/backend.service';
 
 @Component({
   selector: 'app-template-selector',
@@ -34,7 +33,6 @@ export class TemplateSelector {
   isOpen = signal(false);
   private elementRef = inject(ElementRef);
   private session = inject(SessionService);
-  private backend = inject(BackendService);
 
   selectTemplate(id: string) {
     this.select.emit(id);

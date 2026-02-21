@@ -42,6 +42,12 @@ export const routes: Routes = [
             data: { template: 'triple' },
             canActivate: [canvaAuthGuard],
           },
+          {
+            path: 'folder',
+            loadComponent: () => import('./modules/main/content/canva/canva').then((m) => m.Canva),
+            data: { template: 'folder' },
+            canActivate: [canvaAuthGuard],
+          },
         ],
       },
       {

@@ -5,10 +5,11 @@ import { IconFolder } from '@src/app/components/icons/icon-folder';
 import { PreviewSingle } from './content/preview-single/preview-single';
 import { PreviewDouble } from './content/preview-double/preview-double';
 import { PreviewTriple } from './content/preview-triple/preview-triple';
+import { PreviewFolder } from './content/preview-folder/preview-folder';
 
 @Component({
   selector: 'app-canva-preview',
-  imports: [CommonModule, IconFolder, PreviewSingle, PreviewDouble, PreviewTriple],
+  imports: [CommonModule, IconFolder, PreviewSingle, PreviewDouble, PreviewTriple, PreviewFolder],
   templateUrl: './canva-preview.html',
   styleUrl: './canva-preview.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +23,7 @@ export class CanvaPreview {
   sets = input.required<DesignSet[]>();
 
   docName = input<string | null>(null);
+  folderName = input<string | null>(null);
   docLoading = input<boolean>(false);
   aiLoading = input<boolean>(false);
 
@@ -38,6 +40,7 @@ export class CanvaPreview {
   isDouble = computed(() => this.selectedTemplateId()?.includes('DOUBLE'));
   isSingle = computed(() => this.selectedTemplateId()?.includes('SINGLE'));
   isTriple = computed(() => this.selectedTemplateId()?.includes('TRIPLE'));
+  isFolder = computed(() => this.selectedTemplateId()?.includes('FOLDER'));
 
   onRemoveFile(id: string) {
     this.removeFile.emit(id);
