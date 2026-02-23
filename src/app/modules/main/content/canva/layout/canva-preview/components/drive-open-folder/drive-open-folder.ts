@@ -106,10 +106,15 @@ export class DriveOpenFolder implements OnInit {
     this.cdr.markForCheck();
 
     if (err.status === 401 || err.status === 403 || err.status === 500) {
-      this.session.authenticateGoogle().catch((error) => {
-        console.error('Error en autenticación Google:', error);
-        alert('No se pudo completar la autenticación con Google. ' + error.message);
-      });
+      this.session
+        .authenticateGoogle()
+        .then(() => {
+          this.loadFolders(this.currentFolderId());
+        })
+        .catch((error) => {
+          console.error('Error en autenticación Google:', error);
+          alert('No se pudo completar la autenticación con Google. ' + error.message);
+        });
     }
   }
 

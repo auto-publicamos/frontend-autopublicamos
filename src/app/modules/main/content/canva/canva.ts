@@ -187,14 +187,20 @@ export class Canva implements OnInit {
       this.source.set('drive');
       this.showFolderPicker.set(true);
     } else {
-      this.session.authenticateGoogle().catch((error) => {
-        console.error('Error en autenticación Google:', error);
-        this.showAlert(
-          'Error de Autenticación',
-          'No se pudo completar la autenticación con Google. ' + error.message,
-          'error',
-        );
-      });
+      this.session
+        .authenticateGoogle()
+        .then(() => {
+          this.source.set('drive');
+          this.showFolderPicker.set(true);
+        })
+        .catch((error) => {
+          console.error('Error en autenticación Google:', error);
+          this.showAlert(
+            'Error de Autenticación',
+            'No se pudo completar la autenticación con Google. ' + error.message,
+            'error',
+          );
+        });
     }
   }
 
@@ -202,14 +208,19 @@ export class Canva implements OnInit {
     if (this.session.getGoogleToken()) {
       this.showDocPicker.set(true);
     } else {
-      this.session.authenticateGoogle().catch((error) => {
-        console.error('Error en autenticación Google:', error);
-        this.showAlert(
-          'Error de Autenticación',
-          'No se pudo completar la autenticación con Google. ' + error.message,
-          'error',
-        );
-      });
+      this.session
+        .authenticateGoogle()
+        .then(() => {
+          this.showDocPicker.set(true);
+        })
+        .catch((error) => {
+          console.error('Error en autenticación Google:', error);
+          this.showAlert(
+            'Error de Autenticación',
+            'No se pudo completar la autenticación con Google. ' + error.message,
+            'error',
+          );
+        });
     }
   }
 
@@ -331,14 +342,21 @@ export class Canva implements OnInit {
       this.activeSlot.set(event);
       this.showImagePicker.set(true);
     } else {
-      this.session.authenticateGoogle().catch((error) => {
-        console.error('Error en autenticación Google:', error);
-        this.showAlert(
-          'Error de Autenticación',
-          'No se pudo completar la autenticación con Google. ' + error.message,
-          'error',
-        );
-      });
+      this.session
+        .authenticateGoogle()
+        .then(() => {
+          this.source.set('drive');
+          this.activeSlot.set(event);
+          this.showImagePicker.set(true);
+        })
+        .catch((error) => {
+          console.error('Error en autenticación Google:', error);
+          this.showAlert(
+            'Error de Autenticación',
+            'No se pudo completar la autenticación con Google. ' + error.message,
+            'error',
+          );
+        });
     }
   }
 
