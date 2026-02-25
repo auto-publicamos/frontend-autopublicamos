@@ -519,24 +519,6 @@ export class Canva implements OnInit {
       return;
     }
 
-    try {
-      await firstValueFrom(this.backend.verifyCanvaToken(canvaToken));
-    } catch (err: any) {
-      if (err.status === 401 || err.status === 403) {
-        this.session.authenticateCanva().catch((authError) => {
-          this.showAlert(
-            'Error de Autenticación',
-            'No se pudo completar la autenticación con Canva. ' + authError.message,
-            'error',
-          );
-        });
-        return;
-      } else {
-        this.showAlert('Error de Conexión', 'No se pudo verificar la sesión de Canva.', 'error');
-        return;
-      }
-    }
-
     const isFolder = selectedId.includes('_FOLDER');
     const isSingle = selectedId.includes('_SINGLE');
     const isDouble = selectedId.includes('_DOUBLE');
@@ -657,8 +639,21 @@ export class Canva implements OnInit {
           ...prev,
           { name: job.name, url: result.url, thumbnail: result.thumbnail },
         ]);
-      } catch (err) {
+      } catch (err: any) {
         console.error(`Error generating ${job.name}`, err);
+        if (err.status === 500 || err.status === 401 || err.status === 403) {
+          this.isSending.set(false);
+          this.currentJobId.set(null);
+          this.session
+            .authenticateCanva()
+            .then(() => {
+              this.handleSend();
+            })
+            .catch((authError) => {
+              console.error('Error re-autenticando con Canva:', authError);
+            });
+          return;
+        }
       } finally {
         this.processedCount.update((c) => c + 1);
       }
